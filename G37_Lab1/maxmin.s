@@ -1,60 +1,58 @@
 		        .text
 		        .global _start
 
-_start:		  	LDR R0, =MAX		// Address of Max 
-		        LDR R1, =MIN		// Address of Min
-		        LDR R2, [R1, #4]	// Value of n
-		        LDR R3, [R1, #8]	// Value of m
-		        ADD R4, R1, #12		// Address of num 1 (Pointer 1)
-		        ADD R5, R1, #16 	// Address of num 2 (Pointer 2)
+_start:		  	LDR R0, =MAX		// R0 holds address of max 
+		        LDR R1, =MIN		// R1 holds address of min
+		        LDR R2, [R1, #4]	// R2 holds value of n
+		        LDR R3, [R1, #8]	// R3 holds value of m
+		        ADD R4, R1, #12		// R4 holds address of Num 1 (this is just an arbitrary name)
+		        ADD R5, R1, #16 	// R5 holds address of Num 2 (this is just an arbitrary name)
 
-		        ADD R6, R2, R3		// Counter initialized to n + m
-		        SUB R7, R7, R7		// Initialize sum to 0
+		        ADD R6, R2, R3		// R6 holds counter, initializes to n + m
+		        SUB R7, R7, R7		// initializes sum to 0
 
-FINDSUM:			 
-		        LDR R8, [R4]		// Get value of Pointer 1
-		        ADD R7, R7, R8		// Add value of pointer 1 to sum
-		        ADD R4, R4, #4		// Updater Pointer 1 to point to next number
-		        SUBS R6, R6, #1		// Decrement Counter by 1
-		        BEQ RESET		// Exit loop
-		        B FINDSUM
+FINDSUM:		// this part calculates the sum of all the n + m numbers
+				LDR R8, [R4]		// R8 holds value of Num 1
+		        ADD R7, R7, R8		// add value of Num 1 to sum
+		        ADD R4, R4, #4		// Num 1 points to next number
+		        SUBS R6, R6, #1		// decrement counter by 1
+		        BEQ REINITIALIZE	// if counter equals 0, exit loop
+		        B FINDSUM			// else, continue
 
-RESET:
-		        ADD R4, R1, #12		// Address of num 1 (Pointer 1)
-		        SUB R6, R6, R6		// Reset R6
-		        ADD R6, R2, R3		// Counter is n+m
-		        LDR R9, [R4]		// Get X1 value from pointer 1
+REINITIALIZE:	// this part resets initialization after finding sum
+				// used for reiterating through numbers
+				ADD R4, R1, #12		// R4 holds address of Num 1 (this is just an arbitrary name)
+		        SUB R6, R6, R6		// reset R6 (i.e., the counter) to 0
+		        ADD R6, R2, R3		// reset counter R6 to n + m
+		        LDR R9, [R4]		// R9 holds value from Num 1
 
-		        LDR R3, [R0]		// Obtain Value of Max
-		        LDR R4, [R1]		// Obtain Value of Min
+		        LDR R3, [R0]		// R3 holds value of max
+		        LDR R4, [R1]		// R4 holds value of min
 
-LOOP:
-		        SUBS R6, R6, #1		// Decrement counter
-		        BEQ DONE			// Exit if counter = 0
-		        LDR R10, [R5]		// Get X2 value from pointer 2
-		        ADD R5, R5, #4		// Move pointer 2 forward to point to next number
+LOOP:			// this part loops through all the possible values of X * (S - X)
+				SUBS R6, R6, #1		// decrement counter
+		        BEQ DONE			// if counter equals 0, exit loop
+		        LDR R10, [R5]		// R10 holds value of Num 2
+		        ADD R5, R5, #4		// Num 2 points to next number
 			
-		        // Computation
-		        ADD R11, R9, R10 	// Init Xsum to X1 + X2
-		        SUB R12, R7, R11 	// Init Ysum to Sum - Xsum
+		        ADD R11, R9, R10 	// set Xsum to X1 + X2
+		        SUB R12, R7, R11 	// set Ysum to S - Xsum
 		        MUL R2, R11, R12	// Result is (Xsum * Ysum)
 			
-		        // Comparison
-		        CMP R3, R2			// Compare Result & Max	
-		        BLE UPDATEMAX		// If Result > Max, Update Max
-		        B CHECKMIN			// Else Check Min
+		        CMP R3, R2			// compare result and max
+		        BLE UPDATEMAX		// if result is greater than max, update max
+				CMP R4, R2			// else, compare result and min
+				BGE UPDATEMIN		// if result is less than min, update min
+				B LOOP				// branch back to top of loop
 
-UPDATEMAX:		MOV R3, R2
+UPDATEMAX:		MOV R3, R2			// update max
+				B LOOP				// branch back to loop
 
-CHECKMIN: 		CMP R4, R2			// Compare Result & Min
-		        BGE UPDATEMIN		// If Result < min, Update Min
-		        B LOOP				// Else Back to loop
-
-UPDATEMIN:		MOV R4, R2
-		        B LOOP			
+UPDATEMIN:		MOV R4, R2			// update min
+		        B LOOP				// branch back to loop
 			
-DONE:		    STR R3, [R0]		// Store Max
-		        STR R4, [R1]		// Store Min
+DONE:		    STR R3, [R0]		// store max
+		        STR R4, [R1]		// store min
 		 
 END:		    B END				// infinite loop!
 
@@ -62,4 +60,4 @@ MAX:		    .word	0			// memory assigned for max location (value of smallest 32 bi
 MIN:		    .word	2147483647	// memory assigned for min location (value of biggest 32 bit integer)
 N: 		      	.word	2			
 M:		      	.word	2			
-NUMBERS:	  	.word	3, 6, 5, 9	// the list data
+NUMBERS:	  	.word	1, 2, 3, 4	// the list data
