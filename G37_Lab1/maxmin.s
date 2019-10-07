@@ -1,7 +1,7 @@
 		        .text
 		        .global _start
 
-_start:		  LDR R0, =MAX		// Address of Max 
+_start:		  	LDR R0, =MAX		// Address of Max 
 		        LDR R1, =MIN		// Address of Min
 		        LDR R2, [R1, #4]	// Value of n
 		        LDR R3, [R1, #8]	// Value of m
@@ -30,7 +30,7 @@ RESET:
 
 LOOP:
 		        SUBS R6, R6, #1		// Decrement counter
-		        BEQ DONE		// Exit if counter = 0
+		        BEQ DONE			// Exit if counter = 0
 		        LDR R10, [R5]		// Get X2 value from pointer 2
 		        ADD R5, R5, #4		// Move pointer 2 forward to point to next number
 			
@@ -40,26 +40,26 @@ LOOP:
 		        MUL R2, R11, R12	// Result is (Xsum * Ysum)
 			
 		        // Comparison
-		        CMP R3, R2		// Compare Result & Max	
+		        CMP R3, R2			// Compare Result & Max	
 		        BLE UPDATEMAX		// If Result > Max, Update Max
-		        B CHECKMIN		// Else Check Min
+		        B CHECKMIN			// Else Check Min
 
-UPDATEMAX:	MOV R3, R2
+UPDATEMAX:		MOV R3, R2
 
-CHECKMIN: 	CMP R4, R2		// Compare Result & Min
+CHECKMIN: 		CMP R4, R2			// Compare Result & Min
 		        BGE UPDATEMIN		// If Result < min, Update Min
-		        B LOOP			// Else Back to loop
+		        B LOOP				// Else Back to loop
 
-UPDATEMIN:	MOV R4, R2
+UPDATEMIN:		MOV R4, R2
 		        B LOOP			
 			
 DONE:		    STR R3, [R0]		// Store Max
 		        STR R4, [R1]		// Store Min
 		 
-END:		    B END			// infinite loop!
+END:		    B END				// infinite loop!
 
-MAX:		    .word	0		// memory assigned for max location (value of smallest 32 bit integer)
+MAX:		    .word	0			// memory assigned for max location (value of smallest 32 bit integer)
 MIN:		    .word	2147483647	// memory assigned for min location (value of biggest 32 bit integer)
-N: 		      .word	2			
-M:		      .word	2			
-NUMBERS:	  .word	3, 6, 5, 9	// the list data
+N: 		      	.word	2			
+M:		      	.word	2			
+NUMBERS:	  	.word	3, 6, 5, 9	// the list data
