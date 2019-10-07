@@ -32,5 +32,5 @@ END:		B END				// infinite loop!
 
 RESULT:		.word	0			// memory assigned for result location
 N: 			.word	7			// number of entries in the list			
-NUMBERS:	.word	4, 5, 3, 6	// the list data
+NUMBERS:	.word	2, 9, 13, -100	// the list data
 			.word	1, 8, 2
