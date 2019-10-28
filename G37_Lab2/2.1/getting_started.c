@@ -7,5 +7,6 @@ int main() {
 			min_val = a[i];
 		}
 	}
+	printf("%d", min_val);
 	return min_val;
 }
