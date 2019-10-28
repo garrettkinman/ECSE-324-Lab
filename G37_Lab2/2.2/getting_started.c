@@ -5,9 +5,7 @@ int main() {
 	int min_val = a[0];
 	int i;
 	for(i = 0; i < sizeof(a)/sizeof(a[0]); i++) {
-		if(MIN_2(min_val, a[i]) < min_val) {
-			min_val = a[i];
-		}
+		min_val = MIN_2(min_val, a[i]);
 	}
 	printf("%d", min_val);
 	return min_val;
