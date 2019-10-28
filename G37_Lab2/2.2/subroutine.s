@@ -4,5 +4,5 @@
 MIN_2:		CMP R0, R1
 			BXLE LR
 			MOV R0, R1
-			BXLR
+			BX LR
 			.end
