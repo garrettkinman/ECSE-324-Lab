@@ -1,5 +1,7 @@
 #ifndef _ISRS
 #define _ISRS
+	extern volatile int hps_tim0_int_flag;
+	extern volatile int pb_int_flag;
 
 	extern void A9_PRIV_TIM_ISR();
 	extern void HPS_GPIO1_ISR();
@@ -18,6 +20,3 @@
 	extern void FPGA_PS2_DUAL_ISR();
 
 #endif
-
-
-
