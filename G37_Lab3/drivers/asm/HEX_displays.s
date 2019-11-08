@@ -46,8 +46,8 @@ HEX_clear_DONE:
 					POP {R1-R8, R14}		// pop the program state
 					BX LR					// return
 
-HEX_flood_ASM:								//we know that R0 holds a hot-one encoding of which HEX display
-					PUSH {R1-R8,R14}
+HEX_flood_ASM:								// R0 holds a hot-one encoding of which HEX display
+					PUSH {R1-R8,LR}			// push program state
 					LDR R1, =HEX3_HEX0_BASE	//put location of the HEX3-0 register into R0
 					MOV R3, #0				//this is our counter for which hex counts
 		
