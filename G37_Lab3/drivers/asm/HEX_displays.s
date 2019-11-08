@@ -5,44 +5,46 @@
 					.global HEX_flood_ASM
 					.global HEX_write_ASM
 
-HEX_clear_ASM:								//we know that R0 holds a hot-one encoding of which HEX display
-					PUSH {R1-R8,LR}
-					LDR R1, =HEX3_HEX0_BASE	//put location of the HEX3-0 register into R0
-					MOV R3, #0				//this is our counter for which hex counts
+HEX_clear_ASM:								// R0 holds a hot-one encoding of which HEX display
+					PUSH {R1-R8,LR}			// push program state
+					LDR R1, =HEX3_HEX0_BASE	// R1 holds location for HEX3-0
+					MOV R3, #0				// initialize counter for which hex counts
 		
 HEX_clear_LOOP:
-					CMP R3, #6				//if we looped all of them
-					BEQ HEX_clear_CORRECT	//branch to done if error
+					CMP R3, #6				// if all 6 hexes have been checked
+					BEQ HEX_clear_CORRECT	// then branch to where we clear that display
 
-					AND R4, R0, #1			//AND 0x0000 0000 is equal to 0x0000 00001, shift if not equal
-					CMP R4, #1				//if equal, this is the desired HEX
-					BEQ HEX_clear_CORRECT	//branch to the part that does something
-							
-					ASR R0, R0, #1			//if not equal, then shift by 1 bit
-					ADD R3, R3, #1			//also increment our counter which will tell us which one is our HEX
-					B HEX_clear_LOOP		//loop again if not correct
+					AND R4, R0, #1			// AND 0x0000 0000 is equal to 0x0000 00001, shift if not equal
+					CMP R4, #1				// if equal, this is the desired HEX
+					BEQ HEX_clear_CORRECT	// so branch to the part that does something
+											// otherwise...
+					ASR R0, R0, #1			// if not equal, then shift by 1 bit
+					ADD R3, R3, #1			// also increment our counter which will tell us which one is our HEX
+					B HEX_clear_LOOP		// branch back to top of loop
 		
 HEX_clear_CORRECT:
-					CMP R3, #3				//if counter is bigger than 3, we are at HEX 4 or 5
-					SUBGT R3, R3, #4		//we set our counter back to either 0 or 1 since we are updating the bits
-					LDRGT R1, =HEX5_HEX4_BASE	//we set it to the the other disp HEX
+					CMP R3, #3					// if counter is bigger than 3, we are at HEX 4 or 5
+					SUBGT R3, R3, #4				// we set our counter back to either 0 or 1 since we are updating the bits
+					LDRGT R1, =HEX5_HEX4_BASE		// we set it to the the other disp HEX
+												// if not bigger than 3, we stick with the default location of HEX3-0
 					LDR R2, [R1]
-					MOV R5, #0xFFFFFF00		//give it an initial value
-					B HEX_clear_LOOP2		//to push stuff back
+					MOV R5, #0xFFFFFF00		// give it an initial value
+					B HEX_clear_LOOP2		// to push stuff back
 
 HEX_clear_LOOP2:
-					CMP R3, #0				//if not equal to 0, we update it
-					BEQ HEX_clear_DONE		//branch to done		
-					LSL R5, R5, #8			//shift left by 8 bits
-					ADD R5, R5, #0xFF		//keep our empty space constant
-					SUB R3, R3, #1			//decrement our counter
+					CMP R3, #0				// check if counter is zero; it can be 0, 1, 2, or 3 (4 and 5 become 0 & 1)
+					BEQ HEX_clear_DONE		// if equal to 0, branch to done		
+											// else...
+					LSL R5, R5, #8			// shift left by 8 bits
+					ADD R5, R5, #0xFF		// keep our empty space constant
+					SUB R3, R3, #1			// decrement the counter
 					B HEX_clear_LOOP2
 
 HEX_clear_DONE:
-					AND R2, R2, R5			//we and the two values
-					STR R2, [R1]			//we store back on the display
-					POP {R1-R8, R14}
-					BX LR
+					AND R2, R2, R5			// we and the two values
+					STR R2, [R1]			// we store back on the display
+					POP {R1-R8, R14}		// pop the program state
+					BX LR					// return
 
 HEX_flood_ASM:								//we know that R0 holds a hot-one encoding of which HEX display
 					PUSH {R1-R8,R14}
