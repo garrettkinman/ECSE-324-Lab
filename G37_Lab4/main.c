@@ -1,6 +1,8 @@
 #include <stdio.h>
-#include "./drivers/inc/VGA.h"
-// TODO: more imports for other drivers
+#include "./drivers/inc/vga.h"
+#include "./drivers/inc/slider_switches.h"
+#include "./drivers/inc/pushbuttons.h"
+#include "./drivers/inc/ps2_keyboard.h"
 
 void test_char() {
 	int x, y;

@@ -17,6 +17,8 @@
             <source_file filepath="true">drivers/asm/slider_switches.s</source_file>
             <source_file filepath="true">drivers/inc/pushbuttons.h</source_file>
             <source_file filepath="true">drivers/inc/slider_switches.h</source_file>
+            <source_file filepath="true">drivers/inc/ps2_keyboard.h</source_file>
+            <source_file filepath="true">drivers/asm/ps2_keyboard.s</source_file>
         </source_files>
         <options>
             <compiler_flags>-g -O0</compiler_flags>
