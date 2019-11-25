@@ -32,20 +32,22 @@ VGA_clear_charbuff_ASM:		// should set all the valid memory locations in the cha
 							POP {LR}					// pop system state
 							BX LR						// return
 
-CHAR_LOOP_X:				CMP R4, R7					// check if reached end of screen
+CHAR_LOOP_X:				CMP R4, R7					// check if reached end of row
 							BXGE LR						// if so, branch back
 							PUSH {LR}					// else, push system state
 							BL CHAR_LOOP_Y:				// and go do stuff for all the y positions in this row
 							POP {LR}					// pop system state
 							// TODO: 
-							// store the value 0 in this memory address
+							// increase the x offset
 							B CHAR_LOOP_X				// branch back to top of CHAR_LOOP_X
 
 CHAR_LOOP_Y:				// TODO
 							// if reach char_end_Y, branch to CHAR_LOOP_X
 							// else, branch to CHAR_LOOP_Y
-							CMP R4, R10
-							BXGT LR
+							CMP R4, R10					// check if reached end of column
+							BXGT LR						// if so, return
+							// else, increase the y offset
+							
 
 VGA_clear_pixelbuff_ASM:	// should set all the valid memory locations in the pixel buffer to 0
 							// TODO
