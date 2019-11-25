@@ -6,8 +6,6 @@
 							.equ Y_offset_char, 0x00000080		// memory offset for y direction for char buffer
 							.equ X_offset_pixel, 0x00000001		// memory offset for x direction for pixel buffer
 							.equ Y_offset_pixel, 0x00000400		// memory offset for y direction for pixel buffer
-							.equ char_end_X, 0x0000004F			// memory address associated with the "end" of x chars
-							.equ char_end_Y, 0xC9001DCF			// memory address associated with the "end" of y chars
 							.equ pixel_end_X, 0x0000013F		// memory address associated with the "end" of x pixels
 							.equ pixel_end_Y, 0xC803BE7E		// memory address associated with the "end" of y pixels
 
@@ -21,31 +19,42 @@
 
 VGA_clear_charbuff_ASM:		// should set all the valid memory locations in the character buffer to 0
 							// TODO
-							PUSH {LR}					// push system state
+							PUSH {R0-LR}					// push system state
+							MOV R2, #0					// R2 is the x counter, initialized to 0
+							MOV R3, #0					// R3 is the y counter, initialized to 0
 							LDR R4, =VGA_CHAR_BUF_BASE	// R4 holds char buffer base address
 							LDR R5, =X_offset_char		// R5 holds char x offset
 							LDR R6, =Y_offset_char		// R6 holds char y offset
-							LDR R7, =char_end_X			// R7 holds end of x
-							LDR R8, =char_end_Y			// R8 holds end of y
 							MOV R0, #0					// R0 holds the value 0
 							BL CHAR_LOOP_X				// branch to the nested loops
-							POP {LR}					// pop system state
+							POP {R0-LR}					// pop system state
 							BX LR						// return
 
-CHAR_LOOP_X:				CMP R4, R7					// check if reached end of row
-							BXGE LR						// if so, branch back
-							PUSH {LR}					// else, push system state
+CHAR_LOOP_X:				CMP R2, #79					// check if reached end of row
+							BXGT LR						// if so, branch back
+							
+														// else...
+							MUL R7, R2, R5				// multiply the x offset by the x counter, hold in R7
+							PUSH {LR}					// push system state
 							BL CHAR_LOOP_Y:				// and go do stuff for all the y positions in this row
 							POP {LR}					// pop system state
-							// TODO: 
-							// increase the x offset
+							
+							ADD R2, R2, #1				// increment the x counter
+							MOV R3, #0					// reset y counter to 0
 							B CHAR_LOOP_X				// branch back to top of CHAR_LOOP_X
 
 CHAR_LOOP_Y:				// TODO
-							// if reach char_end_Y, branch to CHAR_LOOP_X
-							// else, branch to CHAR_LOOP_Y
-							CMP R4, R10					// check if reached end of column
-							BXGT LR						// if so, return
+							CMP R3, #59					// check if reached end of column
+							BXGT LR						// if so, return to the rows
+
+														// else...
+							MUL R8, R3, R6				// multiply y offset by y counter, hold in R8
+							ADD R9, R7, R8				// add x and y parts of the total offset, hold in R9
+							ADD R10, R4, R9				// add the total offset to the base adddress, hold in R10
+
+							
+							
+
 							// else, increase the y offset
 							
 
