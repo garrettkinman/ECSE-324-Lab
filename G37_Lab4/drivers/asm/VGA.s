@@ -17,9 +17,7 @@
 							// TODO: relevant memory locations for VGA
 
 
-VGA_clear_charbuff_ASM:		// should set all the valid memory locations in the character buffer to 0
-							// TODO
-							PUSH {R0-LR}					// push system state
+VGA_clear_charbuff_ASM:		PUSH {R0-LR}					// push system state
 							MOV R2, #0					// R2 is the x counter, initialized to 0
 							MOV R3, #0					// R3 is the y counter, initialized to 0
 							LDR R4, =VGA_CHAR_BUF_BASE	// R4 holds char buffer base address
@@ -43,8 +41,7 @@ CHAR_LOOP_X:				CMP R2, #79					// check if reached end of row
 							MOV R3, #0					// reset y counter to 0
 							B CHAR_LOOP_X				// branch back to top of CHAR_LOOP_X
 
-CHAR_LOOP_Y:				// TODO
-							CMP R3, #59					// check if reached end of column
+CHAR_LOOP_Y:				CMP R3, #59					// check if reached end of column
 							BXGT LR						// if so, return to the rows
 
 														// else...
@@ -52,11 +49,10 @@ CHAR_LOOP_Y:				// TODO
 							ADD R9, R7, R8				// add x and y parts of the total offset, hold in R9
 							ADD R10, R4, R9				// add the total offset to the base adddress, hold in R10
 
-							
-							
+							STRB R0, [R10]				// store 0 at the address for the current position in the char buff
 
-							// else, increase the y offset
-							
+							ADD R3, R3, #1				// increment the y counter
+							B CHAR_LOOP_Y				// branch back to top of CHAR_LOOP_Y
 
 VGA_clear_pixelbuff_ASM:	// should set all the valid memory locations in the pixel buffer to 0
 							// TODO
