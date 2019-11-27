@@ -42,7 +42,6 @@ int main() {
 	VGA_clear_pixelbuff();
 
 	while(1) {
-		// TODO: test depending on which pushbutton is pressed
 		if(read_PB_data_ASM() == PB0){
 			if(read_slider_switches_ASM() > 0){
 				test_byte();
@@ -61,4 +60,25 @@ int main() {
 			VGA_clear_pixelbuff_ASM();
 		}
 	}
+
+	/*
+	int x = 0, y = 0, v = 0;
+	char *data; // we declare a data pointer to which the keyboard data will be stored
+	char c;
+	data = &c;
+	while(1){
+		v = read_PS2_data_ASM(data); 	// we read the data from the keyboard to see if the data is valid
+		if(v == 1){ 						// if a key hasn't been pressed, we keep repeating the current loop iteration
+			VGA_write_byte_ASM(x,y,c); // once a key has been pressed and the data has been read, we write it to the screen
+			x += 3;	
+		}
+		if(x >= 79){
+			x = 0;
+			y++;	
+		}
+		if(y >= 59)
+			y=0;
+	}
+	*/
+	return 0;
 }
