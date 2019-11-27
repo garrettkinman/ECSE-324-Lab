@@ -102,7 +102,7 @@ VGA_write_char_ASM:			PUSH {R3-LR}				// push system state
 							ADD R3, R3, R1, LSL #7		// add the y offset
 							STRB R2, [R3]				// write the char to the coord address
 
-							B DONE_WRITE_CHAR
+							B DONE_WRITE_CHAR			// done
 
 DONE_WRITE_CHAR:			POP {R3-LR}					// pop system state
 							BX LR						// return	
@@ -110,8 +110,8 @@ DONE_WRITE_CHAR:			POP {R3-LR}					// pop system state
 VGA_write_byte_ASM:			// should display two characters showing the hex representation of the third input
 							// should check for valid inputs, taking into account that it needs to display two characters
 							// TODO
-							PUSH {R3-R7}				// push system state
-							CMP R0, #79					// check if x coord is valid (i.e., <=79)
+							PUSH {R3-LR}				// push system state
+							CMP R0, #78					// check if x coord is valid (i.e., <=78; not 79, because second char has to fit, too)
 							BGT DONE_WRITE_BYTE			// if not, done
 							CMP R1, #59					// check if y coord is valid (i.e., <=59)
 							BGT DONE_WRITE_BYTE			// if not, done
@@ -132,14 +132,14 @@ VGA_write_byte_ASM:			// should display two characters showing the hex represent
 							ADD R4, R4, #48
 							ADD R5, R5, #48
 	
-							STRB R4, [R3]
-							ADD R3, R3, #1
-							STRB R5, [R3]
+							STRB R4, [R3]				// store the first character in the char buffer
+							ADD R3, R3, #1				// next position in char buffer
+							STRB R5, [R3]				// stor the second character in the char buffer
 
-							B DONE_WRITE_BYTE
+							B DONE_WRITE_BYTE			// done
 
 DONE_WRITE_BYTE:			POP {R3-LR}					// pop system state
-							BX LR
+							BX LR						// return
 
 VGA_draw_point_ASM:			// should work very similarly to VGA_write_char_ASM
 							// TODO
