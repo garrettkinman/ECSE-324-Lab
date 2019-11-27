@@ -43,5 +43,22 @@ int main() {
 
 	while(1) {
 		// TODO: test depending on which pushbutton is pressed
+		if(read_PB_data_ASM() == PB0){
+			if(read_slider_switches_ASM() > 0){
+				test_byte();
+			}
+			else if(read_slider_switches_ASM() == 0){
+				test_char();
+			}
+		}
+		else if(read_PB_data_ASM() == PB1){
+			test_pixel();
+		}
+		else if(read_PB_data_ASM() == PB2){
+			VGA_clear_charbuff_ASM();
+		}
+		else if(read_PB_data_ASM() == PB3){
+			VGA_clear_pixelbuff_ASM();
+		}
 	}
 }
