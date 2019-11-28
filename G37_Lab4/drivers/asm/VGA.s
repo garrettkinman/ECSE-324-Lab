@@ -12,34 +12,38 @@
 							.global VGA_write_char_ASM
 							.global VGA_write_byte_ASM
 							.global VGA_draw_point_ASM
-							// TODO: relevant memory locations for VGA
 
 
-VGA_clear_charbuff_ASM:		PUSH {R0-LR}				// push system state
+VGA_clear_charbuff_ASM:		PUSH {LR}				// push system state
 							MOV R0, #0					// R0 holds the value 0
 							MOV R2, #0					// R2 is the x counter, initialized to 0
 							MOV R3, #0					// R3 is the y counter, initialized to 0
 							LDR R4, =VGA_CHAR_BUF_BASE	// R4 holds char buffer base address
 							LDR R5, =X_offset_char		// R5 holds char x offset
 							LDR R6, =Y_offset_char		// R6 holds char y offset
-							BL CHAR_LOOP_X				// branch to the nested loops
-							POP {R0-LR}					// pop system state
+							BL BEGIN_CHAR_LOOP_X		// branch to the nested loops
+
+							POP {LR}					// pop system state
 							BX LR						// return
 
+BEGIN_CHAR_LOOP_X:			PUSH {LR}					// push system state
+
 CHAR_LOOP_X:				CMP R2, #79					// check if reached end of row
+							POPGT {LR}					// if so, pop system state
 							BXGT LR						// if so, branch back
 							
 														// else...
 							MUL R7, R2, R5				// multiply the x offset by the x counter, hold in R7
-							PUSH {LR}					// push system state
-							BL CHAR_LOOP_Y:				// and go do stuff for all the y positions in this row
-							POP {LR}					// pop system state
+							BL BEGIN_CHAR_LOOP_Y		// and go do stuff for all the y positions in this row
 							
 							ADD R2, R2, #1				// increment the x counter
 							MOV R3, #0					// reset y counter to 0
 							B CHAR_LOOP_X				// branch back to top of CHAR_LOOP_X
 
+BEGIN_CHAR_LOOP_Y:			PUSH {LR}					// push system state
+
 CHAR_LOOP_Y:				CMP R3, #59					// check if reached end of column
+							POPGT {LR}					// if so, pop system state
 							BXGT LR						// if so, return to the rows
 
 														// else...
@@ -53,31 +57,36 @@ CHAR_LOOP_Y:				CMP R3, #59					// check if reached end of column
 							B CHAR_LOOP_Y				// branch back to top of CHAR_LOOP_Y
 
 VGA_clear_pixelbuff_ASM:	// should set all the valid memory locations in the pixel buffer to 0
-							PUSH {R0-R12}				// push system state
+							PUSH {LR}					// push system state
 							MOV R0, #0					// R0 holds the value 0
 							MOV R2, #0					// R2 is the x counter, initialized to 0
 							MOV R3, #0					// R3 is the y counter, initialized to 0
 							LDR R4, =VGA_PIXEL_BUF_BASE	// R4 holds pixel buffer base address
 							LDR R5, =X_offset_pixel		// R5 holds char x offset
 							LDR R6, =Y_offset_pixel		// R6 holds char y offset
-							BL CHAR_LOOP_X				// branch to the nested loops
-							POP {R0-LR}					// pop system state
+							BL BEGIN_PIXEL_LOOP_X		// branch to the nested loops
+
+							POP {LR}					// pop system state
 							BX LR						// return
 
+BEGIN_PIXEL_LOOP_X:			PUSH {LR}					// push system state
+
 PIXEL_LOOP_X:				CMP R2, #329				// check if reached end of row
+							POPGT {LR}					// if so, pop system state
 							BXGT LR						// if so, branch back
 
 														// else...
 							MUL R7, R2, R5				// multiply the x offset by the x counter, hold in R7
-							PUSH {LR}					// push system state
-							BL CHAR_LOOP_Y:				// and go do stuff for all the y positions in this row
-							POP {LR}					// pop system state
+							BL BEGIN_PIXEL_LOOP_Y		// and go do stuff for all the y positions in this row
 							
 							ADD R2, R2, #1				// increment the x counter
 							MOV R3, #0					// reset y counter to 0
 							B PIXEL_LOOP_X				// branch back to top of PIXEL_LOOP_X
 
+BEGIN_PIXEL_LOOP_Y:			PUSH {LR}					// push system state
+
 PIXEL_LOOP_Y:				CMP R3, #239				// check if reached end of column
+							POPGT {LR}					// pop system state
 							BXGT LR						// if so, return to the rows
 
 														// else...
@@ -90,9 +99,9 @@ PIXEL_LOOP_Y:				CMP R3, #239				// check if reached end of column
 							ADD R3, R3, #1				// increment the y counter
 							B PIXEL_LOOP_Y				// branch back to top of PIXEL_LOOP_Y
 
-VGA_write_char_ASM:			PUSH {R3-LR}				// push system state
+VGA_write_char_ASM:			PUSH {LR}				// push system state
 							CMP R0, #79					// check if x coord is valid (i.e., <=79)
-							BGT DONE__WRITE_CHAR		// if not, done
+							BGT DONE_WRITE_CHAR		// if not, done
 							CMP R1, #59					// check if y coord is valid (i.e., <=59)
 							BGT DONE_WRITE_CHAR			// if not, done
 
@@ -143,3 +152,18 @@ DONE_WRITE_BYTE:			POP {R3-LR}					// pop system state
 
 VGA_draw_point_ASM:			// should work very similarly to VGA_write_char_ASM
 							// TODO
+							LDR R3, =319
+							CMP R0, #0
+							BXLT LR
+							CMP R1, #0
+							BXLT LR
+							CMP R0, R3
+							BXGT LR
+							CMP R1, #239
+							BXGT LR
+	
+							LDR R3, =VGA_PIXEL_BUF_BASE
+							ADD R3, R3, R0, LSL #1
+							ADD R3, R3, R1, LSL #10
+							STRH R2, [R3]
+							BX LR
