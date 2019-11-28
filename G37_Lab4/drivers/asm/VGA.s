@@ -150,9 +150,7 @@ VGA_write_byte_ASM:			// should display two characters showing the hex represent
 DONE_WRITE_BYTE:			POP {R3-LR}					// pop system state
 							BX LR						// return
 
-VGA_draw_point_ASM:			// should work very similarly to VGA_write_char_ASM
-							// TODO
-							LDR R3, =319
+VGA_draw_point_ASM:			LDR R3, =319
 							CMP R0, #0
 							BXLT LR
 							CMP R1, #0
