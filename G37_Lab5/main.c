@@ -37,12 +37,10 @@
 
 
 
-// helper function to generate signals
+// function to generate the output of a signal of a given frequency at a given time
 int generateSignal(float frequency, double time) {
-     //index= (f*t)mod 48000
     int index  = (int)(frequency * time) % 48000;
-    //double ratio = (frequency * time) - (int)(frequency * time);
-    //int sample = ((1-ratio) * sine[index] + ratio * sine[index+1]);
+
     //calling subroutine wave-table
     return sine[index];
 }
@@ -53,7 +51,7 @@ int main() {
 	int_setup(2, (int []){199, 200});
 
 	long time = 0;
-    //A struct that is used to configure the different parameters of the HPS time (Tim for our audio)
+    // a struct that is used to configure the different parameters of the HPS time (Tim for our audio)
 	HPS_TIM_config_t hps_tim_audio;
 
 	hps_tim_audio.tim     = TIM0;
