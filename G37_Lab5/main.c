@@ -74,7 +74,7 @@ int main() {
 	// counter for signal
 	int t = 0;
 	// to store the previous set of drawn points for quicker clearing
-	double history[320] = { 0 };
+	// double history[320] = { 0 };
 	//double valToDraw = 0;
 
 	char value;
@@ -82,11 +82,11 @@ int main() {
 	char amplitude = 1;
 	double signalSum = 0.0;
 
-	drawWords();
+	// drawWords();
 
 	while(1) {
 		if(read_slider_switches_ASM() > 0) {
-			drawWelcome();
+			// drawWelcome();
 		}
 		else{
 				if (read_ps2_data_ASM(&value)) {
@@ -239,5 +239,4 @@ int main() {
 
 
 	return 0;
-}
 }
