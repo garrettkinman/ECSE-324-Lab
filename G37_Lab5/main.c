@@ -78,17 +78,12 @@ int main() {
 	int j_pressed = 0;
 	int k_pressed = 0;
 	int l_pressed = 0;
-	int semi_pressed = 0;
-
-	VGA_clear_pixelbuff_ASM();
+	int semicolon_pressed = 0;
 
 	char *key_data = 0;
-	float x = 0;
-    int color = 0;
-	
 
     while(1) {
-        long sample =0;
+        long sample = 0;
         if(hps_tim1_int_flag){
 			hps_tim1_int_flag = 0;
             
@@ -104,30 +99,30 @@ int main() {
                 else if (*key_data == 0x3B) { j_pressed = 1; }
                 else if (*key_data == 0x42) { k_pressed = 1; }
                 else if (*key_data == 0x4B) { l_pressed = 1; }
-                else if (*key_data == 0x4C) { semi_pressed = 1; }
+                else if (*key_data == 0x4C) { semicolon_pressed = 1; }
                 //to turn volume up or down  
                 else if (*key_data == 0x55) { amplitude += 10; } // increase volume
                 else if (*key_data == 0x4E) { amplitude -= 10; } // decrease volume
                 
-                //break code once the key is realesed set is_pressed to zero
+                // break code once the key is realesed set is_pressed to zero
                 else if (*key_data == 0xF0){
                     while(!read_ps2_data_ASM(key_data));
 
-                    if      (*key_data == 0x1C) { a_pressed = 0; }
+                    if (*key_data == 0x1C) { a_pressed = 0; }
                     else if (*key_data == 0x1B) { s_pressed = 0; }
                     else if (*key_data == 0x23) { d_pressed = 0; }
                     else if (*key_data == 0x2B) { f_pressed = 0; }
                     else if (*key_data == 0x3B) { j_pressed = 0; }
                     else if (*key_data == 0x42) { k_pressed = 0; }
                     else if (*key_data == 0x4B) { l_pressed = 0; }
-                    else if (*key_data == 0x4C) { semi_pressed = 0; }
+                    else if (*key_data == 0x4C) { semicolon_pressed = 0; }
                 }
             }
 		}
 
-        	if(hps_tim0_int_flag){
+        if(hps_tim0_int_flag){
 			hps_tim0_int_flag = 0;
-
+		
 			if(a_pressed) {
 				sample += generateSignal(C_FREQUENCY, time);
 			}
@@ -149,29 +144,19 @@ int main() {
 			if(l_pressed) {
 				sample += generateSignal(B_FREQUENCY, time);
 			}
-			if(semi_pressed) {
+			if(semicolon_pressed) {
 				sample += generateSignal(C2_FREQUENCY, time);
 			}
 
-            sample *= amplitude;
+			sample *= amplitude;
             
-            // If there is space in both the left-channel and right-channel write FIFOs, then the value in the arguments leftdata and rightdata 
-            //is written to the Leftdata and Rightdata registers respectively, and the function returns a value of 1.
-           // If there is no space in either one of the FIFOs, the functions simply returns 0
+			// If there is space in both the left-channel and right-channel write FIFOs, then the value in the arguments leftdata and rightdata 
+			// is written to the Leftdata and Rightdata registers respectively, and the function returns a value of 1.
+			// If there is no space in either one of the FIFOs, the functions simply returns 0
 			if(audio_write_data_ASM(sample, sample)) {
 				time++;
-
-				if(time%20 == 0) { //draw every ~ 6 samples
-					x +=1;
-					if(x > SCREEN_WIDTH) {
-						VGA_clear_pixelbuff_ASM();
-						x = 0;
-					}
-				}
-				int y = (double)(sample) / (10000000.0) + 120; //+120 to be in middle of screen //removed 2 zero
-				VGA_draw_point_ASM(x, y, color++);
-                
 			}
+			
 		}
 	}
 	
