@@ -205,27 +205,27 @@ int main() {
 				t++;
 			}
 
-			int drawIndex = 0;
-			double valToDraw = 0;
+			// int drawIndex = 0;
+			// double valToDraw = 0;
 			// To reduce the number of drawing operations
 			if((t%10 == 0)){
 				//draw volume number in bottom right
 				if(amplitude == 10){
-					VGA_write_byte_ASM(78, 59, 16);
+					// VGA_write_byte_ASM(78, 59, 16);
 				} else {
 					//volume = 0-9
-					VGA_write_byte_ASM(78, 59, amplitude);
+					// VGA_write_byte_ASM(78, 59, amplitude);
 				}
 
-				drawIndex = (t/10)%320;
+				// drawIndex = (t/10)%320;
 				//clear drawn points
-				VGA_draw_point_ASM(drawIndex, history[drawIndex], 0);
+				// VGA_draw_point_ASM(drawIndex, history[drawIndex], 0);
 				//120 centers the signal on the screen, 500000 is abitrary to make it fit
-				valToDraw = 120 + signalSum/500000;
+				// valToDraw = 120 + signalSum/500000;
 				//add new points to history array
-				history[drawIndex] = valToDraw;
+				// history[drawIndex] = valToDraw;
 				//draw new points
-				VGA_draw_point_ASM(drawIndex, valToDraw, 63);		
+				// VGA_draw_point_ASM(drawIndex, valToDraw, 63);		
 			}
 			
 			// Reset the signal
