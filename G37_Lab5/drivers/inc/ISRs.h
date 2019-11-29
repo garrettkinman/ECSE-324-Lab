@@ -3,6 +3,9 @@
 
 	#include "./address_map_arm.h"
 
+	extern volatile int hps_tim0_int_flag;
+	extern volatile int hps_tim1_int_flag;
+
 	extern void A9_PRIV_TIM_ISR();
 	extern void HPS_GPIO1_ISR();
 	extern void HPS_TIM0_ISR();

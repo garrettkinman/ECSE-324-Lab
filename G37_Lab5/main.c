@@ -31,12 +31,6 @@
 //:
 #define C2_FREQUENCY 261.626
 
-
-
-
-
-
-
 // function to generate the output of a signal of a given frequency at a given time
 int generateSignal(float frequency, double time) {
     int index  = (int)(frequency * time) % 48000;
@@ -54,24 +48,24 @@ int main() {
     // a struct that is used to configure the different parameters of the HPS time (Tim for our audio)
 	HPS_TIM_config_t hps_tim_audio;
 
-	hps_tim_audio.tim     = TIM0;
+	hps_tim_audio.tim = TIM0;
 	hps_tim_audio.timeout = 10; // in microsec (faster than keyboerd)
-	hps_tim_audio.LD_en   = 1; // set to 1 to achieve the desired timeout, or 0 for maximum count of tim
-	hps_tim_audio.INT_en  = 1; // set to 1 to enable interrupts, or 0 to disable interrupt
-	hps_tim_audio.enable  = 1; // set to 1 to activate the desired timers, or 0 to deactivate them
+	hps_tim_audio.LD_en = 1; // set to 1 to achieve the desired timeout, or 0 for maximum count of tim
+	hps_tim_audio.INT_en = 1; // set to 1 to enable interrupts, or 0 to disable interrupt
+	hps_tim_audio.enable = 1; // set to 1 to activate the desired timers, or 0 to deactivate them
     
     // configures the timer instances according to the configuration struct stored at the address in argument param. 
     // multiple timers can be configured via the same struct, and the driver handles the different hardware abstractions internally.
 	HPS_TIM_config_ASM(&hps_tim_audio);
 
-    //setting the TIM for keyboard
+    // setting the TIM for keyboard
 	HPS_TIM_config_t hps_tim_keyboard;
 
-	hps_tim_keyboard.tim     = TIM1;
+	hps_tim_keyboard.tim = TIM1;
 	hps_tim_keyboard.timeout = 20000;
-	hps_tim_keyboard.LD_en   = 1;
-	hps_tim_keyboard.INT_en  = 1;
-	hps_tim_keyboard.enable  = 1;
+	hps_tim_keyboard.LD_en = 1;
+	hps_tim_keyboard.INT_en = 1;
+	hps_tim_keyboard.enable = 1;
     
     HPS_TIM_config_ASM(&hps_tim_keyboard);
     
@@ -119,13 +113,13 @@ int main() {
                 else if (*key_data == 0xF0){
                     while(!read_ps2_data_ASM(key_data));
 
-                    if      (*key_data == 0x1C) { a_pressed    = 0; }
-                    else if (*key_data == 0x1B) { s_pressed    = 0; }
-                    else if (*key_data == 0x23) { d_pressed    = 0; }
-                    else if (*key_data == 0x2B) { f_pressed    = 0; }
-                    else if (*key_data == 0x3B) { j_pressed    = 0; }
-                    else if (*key_data == 0x42) { k_pressed    = 0; }
-                    else if (*key_data == 0x4B) { l_pressed    = 0; }
+                    if      (*key_data == 0x1C) { a_pressed = 0; }
+                    else if (*key_data == 0x1B) { s_pressed = 0; }
+                    else if (*key_data == 0x23) { d_pressed = 0; }
+                    else if (*key_data == 0x2B) { f_pressed = 0; }
+                    else if (*key_data == 0x3B) { j_pressed = 0; }
+                    else if (*key_data == 0x42) { k_pressed = 0; }
+                    else if (*key_data == 0x4B) { l_pressed = 0; }
                     else if (*key_data == 0x4C) { semi_pressed = 0; }
                 }
             }
@@ -135,28 +129,28 @@ int main() {
 			hps_tim0_int_flag = 0;
 
 			if(a_pressed) {
-				sample += signal_generator(C_FREQUENCY, time);
+				sample += generateSignal(C_FREQUENCY, time);
 			}
 			if(s_pressed) {
-				sample += signal_generator(D_FREQUENCY, time);
+				sample += generateSignal(D_FREQUENCY, time);
 			}
 			if(d_pressed) {
-				sample += signal_generator(E_FREQUENCY, time);
+				sample += generateSignal(E_FREQUENCY, time);
 			}
 			if(f_pressed) {
-				sample += signal_generator(F_FREQUENCY, time);
+				sample += generateSignal(F_FREQUENCY, time);
 			}
 			if(j_pressed) {
-				sample += signal_generator(G_FREQUENCY, time);
+				sample += generateSignal(G_FREQUENCY, time);
 			}
 			if(k_pressed) {
-				sample += signal_generator(A_FREQUENCY, time);
+				sample += generateSignal(A_FREQUENCY, time);
 			}
 			if(l_pressed) {
-				sample += signal_generator(B_FREQUENCY, time);
+				sample += generateSignal(B_FREQUENCY, time);
 			}
 			if(semi_pressed) {
-				sample += signal_generator(C2_FREQUENCY, time);
+				sample += generateSignal(C2_FREQUENCY, time);
 			}
 
             sample *= amplitude;
