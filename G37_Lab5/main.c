@@ -37,8 +37,8 @@
 
 
 
-//helper method to generate signals
-int signal_generator(float frequency, double time) {
+// helper function to generate signals
+int generateSignal(float frequency, double time) {
      //index= (f*t)mod 48000
     int index  = (int)(frequency * time) % 48000;
     //double ratio = (frequency * time) - (int)(frequency * time);
@@ -49,8 +49,7 @@ int signal_generator(float frequency, double time) {
 
 int main() {
 
-		//	MAKE PROJECT!
-    //interuppt ID of TIM0 & TIM1
+    // interuppt ID of TIM0 & TIM1
 	int_setup(2, (int []){199, 200});
 
 	long time = 0;
@@ -58,13 +57,13 @@ int main() {
 	HPS_TIM_config_t hps_tim_audio;
 
 	hps_tim_audio.tim     = TIM0;
-	hps_tim_audio.timeout = 10; //in microsec (faster than keyboerd)
+	hps_tim_audio.timeout = 10; // in microsec (faster than keyboerd)
 	hps_tim_audio.LD_en   = 1; // set to 1 to achieve the desired timeout, or 0 for maximum count of tim
-	hps_tim_audio.INT_en  = 1; //Set to 1 to enable interrupts, or 0 to disable interrupt
-	hps_tim_audio.enable  = 1; //Set to 1 to activate the desired timers, or 0 to deactivate them
+	hps_tim_audio.INT_en  = 1; // set to 1 to enable interrupts, or 0 to disable interrupt
+	hps_tim_audio.enable  = 1; // set to 1 to activate the desired timers, or 0 to deactivate them
     
-    //Configures the timer instances according to the configuration struct stored at the address in argument param. 
-    //Multiple timers can be configures via the same struct, and the driver handles the different hardware abstractions internally.
+    // configures the timer instances according to the configuration struct stored at the address in argument param. 
+    // multiple timers can be configured via the same struct, and the driver handles the different hardware abstractions internally.
 	HPS_TIM_config_ASM(&hps_tim_audio);
 
     //setting the TIM for keyboard
@@ -106,17 +105,17 @@ int main() {
            // If there is no valid data in the PS/2 FIFO, the function simply return 0
 			if(read_ps2_data_ASM(key_data)){
                 //PS2 Keyboard Scan Codes(make code)
-                if      (*key_data == 0x1C) { a_pressed    = 1; }
-                else if (*key_data == 0x1B) { s_pressed    = 1; }
-                else if (*key_data == 0x23) { d_pressed    = 1; }
-                else if (*key_data == 0x2B) { f_pressed    = 1; }
-                else if (*key_data == 0x3B) { j_pressed    = 1; }
-                else if (*key_data == 0x42) { k_pressed    = 1; }
-                else if (*key_data == 0x4B) { l_pressed    = 1; }
+                if (*key_data == 0x1C) { a_pressed = 1; }
+                else if (*key_data == 0x1B) { s_pressed = 1; }
+                else if (*key_data == 0x23) { d_pressed = 1; }
+                else if (*key_data == 0x2B) { f_pressed = 1; }
+                else if (*key_data == 0x3B) { j_pressed = 1; }
+                else if (*key_data == 0x42) { k_pressed = 1; }
+                else if (*key_data == 0x4B) { l_pressed = 1; }
                 else if (*key_data == 0x4C) { semi_pressed = 1; }
                 //to turn volume up or down  
-                else if (*key_data == 0x55) { amplitude = amplitude + 10; } // +
-                else if (*key_data == 0x4E) { amplitude = amplitude - 10; } // -
+                else if (*key_data == 0x55) { amplitude += 10; } // increase volume
+                else if (*key_data == 0x4E) { amplitude -= 10; } // decrease volume
                 
                 //break code once the key is realesed set is_pressed to zero
                 else if (*key_data == 0xF0){
