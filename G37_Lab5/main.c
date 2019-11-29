@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "./drivers/inc/vga.h"
 #include "./drivers/inc/ISRs.h"
 #include "./drivers/inc/LEDs.h"
@@ -10,233 +11,183 @@
 #include "./drivers/inc/HEX_displays.h"
 #include "./drivers/inc/slider_switches.h"
 
-//array to store the keys currently pressed
-char keysPressed[8] = {};
-//array holding the frequencies, index matched to the keys pressed
-float frequencies[] = {130.813, 146.832, 164.814, 174.614, 195.998, 220.000, 246.942, 261.626};
+#define SCREEN_WIDTH 320
 
-// Get the sample based on the frequency and the "index"
-// Returns double: signal
-double getSampleOld(float freq, int t) {
-
-	int index = (((int)freq) * t)%48000;
-	double signal = sine[index];
-
-	return signal;
-}
-
-// Get the sample based on the frequency and the "index" using linear interpolation
-// Returns double: signal
-double getSample(float freq, int t) {
-	int truncatedIndex = ((int) freq)*t;
-	double fractional = (freq*t) - truncatedIndex;
-
-	int index = truncatedIndex % 48000;
-	//calculate linear interpolation
-	//sine[casted + fractional] = (1-fractional)*sine[index] + fractional[index+1]
-	double signal = (1.0 - fractional) * sine[index] + fractional * sine[index + 1]; //lol lets hope it doesnt overflow
+//from note mapping table
+//A
+#define C_FREQUENCY  130.813   
+//S
+#define D_FREQUENCY  146.832
+//D
+#define E_FREQUENCY  164.814
+//F
+#define F_FREQUENCY  174.614
+//J
+#define G_FREQUENCY  195.998
+//K
+#define A_FREQUENCY  220.000
+//L
+#define B_FREQUENCY  246.942
+//:
+#define C2_FREQUENCY 261.626
 
 
-	return signal;
-}
 
-// Generate the signal from each frequency pressed and add them together
-// Returns double: summed signal
-double generateSignal(char* keys, int t) {
-	int i;
-	double data = 0;
-	// Loop through all keys
-	for(i = 0; i < 8; i++){
-		// Check if key is pressed
-		if(keys[i] == 1){
-			// Sum all frequency samples
-			data += getSampleOld(frequencies[i], t);
-			//data += getSample(frequencies[i], t);
-		}
-	}
-	return data;
+
+
+
+
+//helper method to generate signals
+int signal_generator(float frequency, double time) {
+     //index= (f*t)mod 48000
+    int index  = (int)(frequency * time) % 48000;
+    //double ratio = (frequency * time) - (int)(frequency * time);
+    //int sample = ((1-ratio) * sine[index] + ratio * sine[index+1]);
+    //calling subroutine wave-table
+    return sine[index];
 }
 
 int main() {
-	// Setup timer
-	int_setup(1, (int []){199});
-	HPS_TIM_config_t hps_tim;
-	hps_tim.tim = TIM0; //microsecond timer
-	hps_tim.timeout = 20; //1/48000 = 20.8
-	hps_tim.LD_en = 1; // initial count value
-	hps_tim.INT_en = 1; //enabling the interrupt
-	hps_tim.enable = 1; //enable bit to 1
 
-	HPS_TIM_config_ASM(&hps_tim);
+		//	MAKE PROJECT!
+    //interuppt ID of TIM0 & TIM1
+	int_setup(2, (int []){199, 200});
+
+	long time = 0;
+    //A struct that is used to configure the different parameters of the HPS time (Tim for our audio)
+	HPS_TIM_config_t hps_tim_audio;
+
+	hps_tim_audio.tim     = TIM0;
+	hps_tim_audio.timeout = 10; //in microsec (faster than keyboerd)
+	hps_tim_audio.LD_en   = 1; // set to 1 to achieve the desired timeout, or 0 for maximum count of tim
+	hps_tim_audio.INT_en  = 1; //Set to 1 to enable interrupts, or 0 to disable interrupt
+	hps_tim_audio.enable  = 1; //Set to 1 to activate the desired timers, or 0 to deactivate them
+    
+    //Configures the timer instances according to the configuration struct stored at the address in argument param. 
+    //Multiple timers can be configures via the same struct, and the driver handles the different hardware abstractions internally.
+	HPS_TIM_config_ASM(&hps_tim_audio);
+
+    //setting the TIM for keyboard
+	HPS_TIM_config_t hps_tim_keyboard;
+
+	hps_tim_keyboard.tim     = TIM1;
+	hps_tim_keyboard.timeout = 20000;
+	hps_tim_keyboard.LD_en   = 1;
+	hps_tim_keyboard.INT_en  = 1;
+	hps_tim_keyboard.enable  = 1;
+    
+    HPS_TIM_config_ASM(&hps_tim_keyboard);
+    
+    int amplitude = 100; //MAX volume
+
+	int a_pressed = 0;
+	int s_pressed = 0;
+	int d_pressed = 0;
+	int f_pressed = 0;
+	int j_pressed = 0;
+	int k_pressed = 0;
+	int l_pressed = 0;
+	int semi_pressed = 0;
+
+	VGA_clear_pixelbuff_ASM();
+
+	char *key_data = 0;
+	float x = 0;
+    int color = 0;
 	
-	// whether a key has been released
-	char keyReleased = 0;
-	// counter for signal
-	int t = 0;
-	// to store the previous set of drawn points for quicker clearing
-	// double history[320] = { 0 };
-	//double valToDraw = 0;
 
-	char value;
+    while(1) {
+        long sample =0;
+        if(hps_tim1_int_flag){
+			hps_tim1_int_flag = 0;
+            
+             // If there is valid data in the PS/2 FIFO, the value in the data field of the PS2_Dataregister is stored 
+            //at the address pointed to by the argument char pointer data, and the function returns a value of 1.
+           // If there is no valid data in the PS/2 FIFO, the function simply return 0
+			if(read_ps2_data_ASM(key_data)){
+                //PS2 Keyboard Scan Codes(make code)
+                if      (*key_data == 0x1C) { a_pressed    = 1; }
+                else if (*key_data == 0x1B) { s_pressed    = 1; }
+                else if (*key_data == 0x23) { d_pressed    = 1; }
+                else if (*key_data == 0x2B) { f_pressed    = 1; }
+                else if (*key_data == 0x3B) { j_pressed    = 1; }
+                else if (*key_data == 0x42) { k_pressed    = 1; }
+                else if (*key_data == 0x4B) { l_pressed    = 1; }
+                else if (*key_data == 0x4C) { semi_pressed = 1; }
+                //to turn volume up or down  
+                else if (*key_data == 0x55) { amplitude = amplitude + 10; } // +
+                else if (*key_data == 0x4E) { amplitude = amplitude - 10; } // -
+                
+                //break code once the key is realesed set is_pressed to zero
+                else if (*key_data == 0xF0){
+                    while(!read_ps2_data_ASM(key_data));
 
-	char amplitude = 1;
-	double signalSum = 0.0;
-
-	// drawWords();
-
-	while(1) {
-		if(read_slider_switches_ASM() > 0) {
-			// drawWelcome();
+                    if      (*key_data == 0x1C) { a_pressed    = 0; }
+                    else if (*key_data == 0x1B) { s_pressed    = 0; }
+                    else if (*key_data == 0x23) { d_pressed    = 0; }
+                    else if (*key_data == 0x2B) { f_pressed    = 0; }
+                    else if (*key_data == 0x3B) { j_pressed    = 0; }
+                    else if (*key_data == 0x42) { k_pressed    = 0; }
+                    else if (*key_data == 0x4B) { l_pressed    = 0; }
+                    else if (*key_data == 0x4C) { semi_pressed = 0; }
+                }
+            }
 		}
-		else{
-				if (read_ps2_data_ASM(&value)) {
-					switch (value){
-				// Key = Note = Frequency
-				// A = C = 130.813Hz
-						case 0x1C:
-							if(keyReleased == 1){
-								// printf( "a release\n" );
-								keysPressed[0] = 0;
-								keyReleased = 0;
-							} else{
-								// printf( "a press\n" );
-								keysPressed[0] = 1;
-							}
-							break;
-				// S = D = 146.832Hz
-						case 0x1B:
-							if(keyReleased == 1){
-								// printf( "s release\n" );
-								keysPressed[1] = 0;
-								keyReleased = 0;
-							} else{
-								// printf( "s press\n" );
-								keysPressed[1] = 1;
-							}
-							break;
-				// D = E = 164.814Hz
-						case 0x23:
-							if(keyReleased == 1){
-								keysPressed[2] = 0;
-								keyReleased = 0;
-							} else{
-								keysPressed[2] = 1;
-							}
-							break;
-				// F = F = 174.614Hz
-						case 0x2B:
-							if(keyReleased == 1){
-								keysPressed[3] = 0;
-								keyReleased = 0;
-							} else{
-								keysPressed[3] = 1;
-							}
-							break;
-				// J = G = 195.998Hz
-						case 0x3B:
-							if(keyReleased == 1){
-								keysPressed[4] = 0;
-								keyReleased = 0;
-							} else{
-								keysPressed[4] = 1;
-							}
-							break;
-				// K = A = 220.000Hz
-						case 0x42:
-							if(keyReleased == 1){
-								keysPressed[5] = 0;
-								keyReleased = 0;
-							} else{
-								keysPressed[5] = 1;
-							}
-							break;
-				// L = B = 246.942Hz
-						case 0x4B:
-							if(keyReleased == 1){
-								keysPressed[6] = 0;
-								keyReleased = 0;
-							} else{
-								keysPressed[6] = 1;
-							}
-							break;
-				// ; = C = 261.626Hz
-						case 0x4C:
-							if(keyReleased == 1){
-								keysPressed[7] = 0;
-								keyReleased = 0;
-							}else{
-								keysPressed[7] = 1;
-							}
-							break;
-						//volume up 
-						case 0x49:
-							if(keyReleased == 1){
-								if(amplitude<10)
-									amplitude++;
-								keyReleased = 0;
-							}
-							break;
-						//volume down
-						case 0x41:
-							if(keyReleased == 1){
-								if(amplitude>0)
-									amplitude--;
-								keyReleased = 0;
-							}
-							break;
-						case 0xF0: //the break code is the same for all keys
-							keyReleased = 1;
-							break;
-						default:
-							keyReleased = 0;
+
+        	if(hps_tim0_int_flag){
+			hps_tim0_int_flag = 0;
+
+			if(a_pressed) {
+				sample += signal_generator(C_FREQUENCY, time);
+			}
+			if(s_pressed) {
+				sample += signal_generator(D_FREQUENCY, time);
+			}
+			if(d_pressed) {
+				sample += signal_generator(E_FREQUENCY, time);
+			}
+			if(f_pressed) {
+				sample += signal_generator(F_FREQUENCY, time);
+			}
+			if(j_pressed) {
+				sample += signal_generator(G_FREQUENCY, time);
+			}
+			if(k_pressed) {
+				sample += signal_generator(A_FREQUENCY, time);
+			}
+			if(l_pressed) {
+				sample += signal_generator(B_FREQUENCY, time);
+			}
+			if(semi_pressed) {
+				sample += signal_generator(C2_FREQUENCY, time);
+			}
+
+            sample *= amplitude;
+            
+            // If there is space in both the left-channel and right-channel write FIFOs, then the value in the arguments leftdata and rightdata 
+            //is written to the Leftdata and Rightdata registers respectively, and the function returns a value of 1.
+           // If there is no space in either one of the FIFOs, the functions simply returns 0
+			if(audio_write_data_ASM(sample, sample)) {
+				time++;
+
+				if(time%20 == 0) { //draw every ~ 6 samples
+					x +=1;
+					if(x > SCREEN_WIDTH) {
+						VGA_clear_pixelbuff_ASM();
+						x = 0;
 					}
 				}
+				int y = (double)(sample) / (10000000.0) + 120; //+120 to be in middle of screen //removed 2 zero
+				VGA_draw_point_ASM(x, y, color++);
+                
 			}
-			
-
-			signalSum = generateSignal(keysPressed, t); //generate the signal at this t based on what keys were pressed
-
-			signalSum = amplitude * signalSum; //this is volume control
-
-			// Every 20 microseconds this flag goes high
-			if(hps_tim0_int_flag == 1) {
-				hps_tim0_int_flag = 0;
-				audio_write_data_ASM(signalSum, signalSum);
-				t++;
-			}
-
-			// int drawIndex = 0;
-			// double valToDraw = 0;
-			// To reduce the number of drawing operations
-			if((t%10 == 0)){
-				//draw volume number in bottom right
-				if(amplitude == 10){
-					// VGA_write_byte_ASM(78, 59, 16);
-				} else {
-					//volume = 0-9
-					// VGA_write_byte_ASM(78, 59, amplitude);
-				}
-
-				// drawIndex = (t/10)%320;
-				//clear drawn points
-				// VGA_draw_point_ASM(drawIndex, history[drawIndex], 0);
-				//120 centers the signal on the screen, 500000 is abitrary to make it fit
-				// valToDraw = 120 + signalSum/500000;
-				//add new points to history array
-				// history[drawIndex] = valToDraw;
-				//draw new points
-				// VGA_draw_point_ASM(drawIndex, valToDraw, 63);		
-			}
-			
-			// Reset the signal
-			signalSum = 0;
-			// Reset the counter
-			if(t==48000){
-				t=0;
-			}
-		
+		}
 	}
-
+	
 
 	return 0;
 }
+
+
+
+
